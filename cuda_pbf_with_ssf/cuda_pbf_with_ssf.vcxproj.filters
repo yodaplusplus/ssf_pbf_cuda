@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{e207ed1d-dc53-419f-bcbf-939c4d7734bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\object">
+      <UniqueIdentifier>{5dad9e99-d28b-4683-b602-3cf756a44041}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\renderer">
+      <UniqueIdentifier>{40a2f5c8-544c-4fb1-b191-4b550767bf51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device_resource">
+      <UniqueIdentifier>{2df23a43-63da-42b2-8f42-c8261490964e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf">
+      <UniqueIdentifier>{515d00b2-a241-4944-8de4-598a21a711cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\interaction">
+      <UniqueIdentifier>{38d5e3f7-d113-4089-91d7-d1bcd1d492c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\kernel">
+      <UniqueIdentifier>{7813cfbd-1bd5-4805-a08d-64bcc19db7d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\solver">
+      <UniqueIdentifier>{75829ce3-3006-47c2-9d52-0fff3bda704f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\util">
+      <UniqueIdentifier>{6b313540-9761-4bfd-86ab-d3bbcfd38311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\interaction\cuda">
+      <UniqueIdentifier>{173fc4cd-8ed5-42fa-a224-b40d5e85d28b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\interaction\cuda\detail">
+      <UniqueIdentifier>{0e16da75-036e-4044-918b-bc92eda470e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\kernel\cuda">
+      <UniqueIdentifier>{b15ed50b-8f4b-4f68-97bb-1c9fd5031520}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\kernel\cuda\detail">
+      <UniqueIdentifier>{e2e7fe38-ab9b-4609-a4f6-ac4dfa29a104}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\util\cuda">
+      <UniqueIdentifier>{1a3d55ba-675b-4c18-bb91-4df38e55e9e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pbf\solver\cuda">
+      <UniqueIdentifier>{8bea77b8-7eaa-436c-8e52-209bc718d3f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="simulator">
+      <UniqueIdentifier>{4923380e-b04c-4ec2-b10d-704e32787153}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="simulator\dam">
+      <UniqueIdentifier>{4770916a-ff06-412c-ba7a-cf51102ba755}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\common\common_core.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\controls.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\objloader.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\shader.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\texture.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\vboindexer.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\renderer\ubo_arrangement.h">
+      <Filter>common\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\device_resource\swVBOs.h">
+      <Filter>device_resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\device_resource\swUBOs.h">
+      <Filter>device_resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\device_resource\swShaders.h">
+      <Filter>device_resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\device_resource\swVAOs.h">
+      <Filter>device_resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\device_resource\swFBOs.h">
+      <Filter>device_resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\device_resource\swTextures.h">
+      <Filter>device_resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\pbf.h">
+      <Filter>pbf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\pbf_type.h">
+      <Filter>pbf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\interaction\pbf_neighbor_search.h">
+      <Filter>pbf\interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\interaction\cuda\pbf_contribution.h">
+      <Filter>pbf\interaction\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\interaction\cuda\pbf_grid.h">
+      <Filter>pbf\interaction\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\interaction\cuda\pbf_neighbor_search_util.h">
+      <Filter>pbf\interaction\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\kernel\cuda\pbf_kernel.h">
+      <Filter>pbf\kernel\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\util\pbf_arrangement.h">
+      <Filter>pbf\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\util\pbf_cuda_util.h">
+      <Filter>pbf\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\util\cuda\pbf_fill.h">
+      <Filter>pbf\util\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\pbf_solve.h">
+      <Filter>pbf\solver</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_constraint.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_position_update.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_predict.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_update.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_vorticity_confinement.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_xsph.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\simulator\pbf_base_sim.h">
+      <Filter>simulator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\simulator\dam\pbf_dam_init_cond.h">
+      <Filter>simulator\dam</Filter>
+    </ClInclude>
+    <ClInclude Include="src\simulator\dam\pbf_dam_sim.h">
+      <Filter>simulator\dam</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_density.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\interaction\cuda\pbf_neighbor_search_device_util.cuh">
+      <Filter>pbf\interaction\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_kernel_memorization.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\common\controls.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\objloader.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\vboindexer.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\texture.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\shader.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\pbf\pbf_type.cpp">
+      <Filter>pbf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pbf\interaction\pbf_neighbor_search.cpp">
+      <Filter>pbf\interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pbf\solver\pbf_solve.cpp">
+      <Filter>pbf\solver</Filter>
+    </ClCompile>
+    <ClCompile Include="src\simulator\pbf_base_sim.cpp">
+      <Filter>simulator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\simulator\dam\pbf_dam_init_cond.cpp">
+      <Filter>simulator\dam</Filter>
+    </ClCompile>
+    <ClCompile Include="src\simulator\dam\pbf_dam_sim.cpp">
+      <Filter>simulator\dam</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\pbf\interaction\cuda\pbf_neighbor_search_util.cu">
+      <Filter>pbf\interaction\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\util\cuda\pbf_fill.cu">
+      <Filter>pbf\util\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_constraint.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_position_update.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_predict.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_update.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_vorticity_confinement.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_xsph.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_density.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\interaction\cuda\pbf_neighbor_search_device_util.cu">
+      <Filter>pbf\interaction\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_kernel_memorization.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\pbf\interaction\cuda\detail\pbf_contribution.inl">
+      <Filter>pbf\interaction\cuda\detail</Filter>
+    </None>
+    <None Include="src\pbf\kernel\cuda\detail\pbf_kernel.inl">
+      <Filter>pbf\kernel\cuda\detail</Filter>
+    </None>
+  </ItemGroup>
+</Project>
