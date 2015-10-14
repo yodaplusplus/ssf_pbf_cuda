@@ -2,6 +2,7 @@
 #include "cuda/pbf_neighbor_search_util.h"
 #include "../util/cuda/pbf_fill.h"
 #include "../util/pbf_cuda_util.h"
+#include "../util/cuda/pbf_counting_sort.h"
 
 namespace pbf {
 
@@ -9,7 +10,7 @@ neighbor_search::neighbor_search(
 	uint32_t arg_num,
 	scalar_t arg_cell_width,
 	dom_udim arg_grid_size) :
-	max_pair_particle_num(120)
+	max_pair_particle_num(50)
 {
 	max_particle_num = arg_num;
 	cell_width = arg_cell_width;
@@ -28,6 +29,35 @@ neighbor_search::neighbor_search(
 	const uint32_t empty = 0xFFFFFFFF;
 	pbf::cuda::fill(cell_start, empty, cell_num);
 	pbf::cuda::fill(neighbor_list, empty, max_particle_num * max_pair_particle_num);
+
+	// for cub radix sort
+	cudaMalloc(&sorted_hash_index.d_hash, max_particle_num * sizeof(uint32_t));
+	cudaMalloc(&sorted_hash_index.d_index, max_particle_num * sizeof(uint32_t));
+	//temp_cub_storage_size = 0;
+	//cuda::getRadixSortStorageSize(temp_cub_storage_size, max_particle_num);
+	//cudaMalloc(&temp_cub_storage, temp_cub_storage_size);
+
+	// for counting sort
+	temp_cub_storage_size = 0;
+	cuda::getPrefixSumStorageSize(temp_cub_storage_size, cell_num);
+	cudaMalloc(&temp_cub_storage, temp_cub_storage_size);
+
+	std::cout << "temp size: " << temp_cub_storage_size << std::endl;
+
+	cudaMalloc(&hash_count, max_particle_num * sizeof(uint32_t));
+	if (cudaMalloc(&cell_count, cell_num * sizeof(uint32_t)) != cudaSuccess) {
+		std::cerr << "cuda malloc failed" << std::endl;
+	}
+	if (cudaMalloc(&cumulative_cell_count, cell_num * sizeof(uint32_t)) != cudaSuccess) {
+		std::cerr << "cuda malloc failed" << std::endl;
+	}
+
+	std::cout << "grid size: " << grid_size.x << ", " << grid_size.y << ", " << grid_size.z << std::endl;
+
+	// z-order hashing
+	cudaMalloc(&zorder_hash, max_particle_num * sizeof(uint64_t));
+	cudaMalloc(&sorted_zorder_hash, max_particle_num * sizeof(uint64_t));
+
 #ifdef _DEBUG
 	gpuErrchk(cudaPeekAtLastError());
 	gpuErrchk(cudaDeviceSynchronize());
@@ -42,6 +72,17 @@ neighbor_search::~neighbor_search()
 	cudaFree(hash_index.d_hash);
 	cudaFree(hash_index.d_index);
 	cudaFree(neighbor_list);
+
+	cudaFree(sorted_hash_index.d_hash);
+	cudaFree(sorted_hash_index.d_index);
+	cudaFree(temp_cub_storage);
+
+	cudaFree(hash_count);
+	cudaFree(cell_count);
+	cudaFree(cumulative_cell_count);
+
+	cudaFree(zorder_hash);
+	cudaFree(sorted_zorder_hash);
 }
 
 void neighbor_search::detectNeighbors(
@@ -61,6 +102,7 @@ void neighbor_search::detectNeighbors(
 	pbf::cuda::fill(neighbor_list, empty, max_pair_particle_num * num_particle);
 	if (num_particle > 0){
 		pbf::cuda::calcHash(hash_index.d_hash, hash_index.d_index, old_predicted_position, cell_width, grid_size, num_particle);
+#ifdef USE_THRUST
 		cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
 		pbf::cuda::sortHashIndex(hash_index.d_hash, hash_index.d_index, num_particle);
 		cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
@@ -70,9 +112,44 @@ void neighbor_search::detectNeighbors(
 		pbf::cuda::detectNeighbors(neighbor_list, sorted_predicted_position,
 			hash_index.d_hash, hash_index.d_index, cell_start, cell_end,
 			cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
+#else
+#ifdef USE_CUB
+		pbf::cuda::sortHashIndexCUB(temp_cub_storage, temp_cub_storage_size,
+			hash_index.d_hash, sorted_hash_index.d_hash, hash_index.d_index, sorted_hash_index.d_index, num_particle);
+		pbf::cuda::findCellStart(cell_start, cell_end, sorted_hash_index.d_hash, sorted_hash_index.d_index, num_particle);
+		pbf::cuda::reorderData(sorted_predicted_position, old_predicted_position, sorted_hash_index.d_index, num_particle);
+		pbf::cuda::reorderData(sorted_current_position, old_current_position, sorted_hash_index.d_index, num_particle);
+		pbf::cuda::detectNeighbors(neighbor_list, sorted_predicted_position,
+			sorted_hash_index.d_hash, sorted_hash_index.d_index, cell_start, cell_end,
+			cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
+#else
+		// z-order hashing
+		//pbf::cuda::calcZOrderHash(zorder_hash, hash_index.d_index, old_predicted_position, cell_width, grid_size, num_particle);
+		//pbf::cuda::fill(hash_count, 0, num_particle);
+		//pbf::cuda::fill(cell_count, 0, total_cell);
+		//pbf::cuda::countingSort(sorted_zorder_hash, sorted_hash_index.d_index, cumulative_cell_count, cell_count,
+		//	hash_count, temp_cub_storage, temp_cub_storage_size, zorder_hash, num_particle, total_cell);
+		//pbf::cuda::findCellStart(cell_start, cell_end, sorted_zorder_hash, sorted_hash_index.d_index, num_particle);
+		//pbf::cuda::reorderData(sorted_predicted_position, old_predicted_position, sorted_hash_index.d_index, num_particle);
+		//pbf::cuda::reorderData(sorted_current_position, old_current_position, sorted_hash_index.d_index, num_particle);
+		//pbf::cuda::detectNeighbors(neighbor_list, sorted_predicted_position, cell_start, cell_end,
+		//	cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
+
+		// trivial indexing
+		pbf::cuda::fill(hash_count, 0, num_particle);
+		pbf::cuda::fill(cell_count, 0, total_cell);
+		pbf::cuda::countingSort(sorted_hash_index.d_hash, sorted_hash_index.d_index, cumulative_cell_count, cell_count,
+			hash_count, temp_cub_storage, temp_cub_storage_size, hash_index.d_hash, num_particle, total_cell);
+		pbf::cuda::findCellStart(cell_start, cell_end, sorted_hash_index.d_hash, sorted_hash_index.d_index, num_particle);
+		pbf::cuda::reorderData(sorted_predicted_position, old_predicted_position, sorted_hash_index.d_index, num_particle);
+		pbf::cuda::reorderData(sorted_current_position, old_current_position, sorted_hash_index.d_index, num_particle);
+		pbf::cuda::detectNeighbors(neighbor_list, sorted_predicted_position, cell_start, cell_end,
+			cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
+
+#endif
+#endif
 	}
 }
-
 
 void neighbor_search::reorderDataAndFindCellStart(
 	dom_dim* sorted_predicted_position,

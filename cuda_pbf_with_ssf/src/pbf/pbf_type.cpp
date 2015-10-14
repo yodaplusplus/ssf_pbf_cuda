@@ -170,7 +170,7 @@ void pbf_particle::allocate(uint32_t num, dom_dim domain_end)
 		exit(-1);
 	phase.allocate(num);
 	auto cell_width = parameter.smoothing_length;
-	auto grid_size = calcGridSize(cell_width, domain_end);
+	auto grid_size = calcGridSize(cell_width * 2.0, domain_end);
 	ns = std::make_shared<pbf::neighbor_search>(num, cell_width, grid_size);
 }
 

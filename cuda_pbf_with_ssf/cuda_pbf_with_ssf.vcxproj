@@ -124,9 +124,13 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <PtxAsOptionV>true</PtxAsOptionV>
       <FastMath>true</FastMath>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
-      <AdditionalOptions>-Xcompiler "/wd 4819" %(AdditionalOptions)</AdditionalOptions>
-      <CodeGeneration>compute_20,sm_21</CodeGeneration>
+      <AdditionalOptions>-Xcompiler "/wd 4819" -Xptxas -dlcm=ca -prec-div=false -ftz=true -prec-sqrt=false %(AdditionalOptions)</AdditionalOptions>
+      <CodeGeneration>compute_52,sm_52</CodeGeneration>
+      <Optimization>InheritFromHost</Optimization>
     </CudaCompile>
+    <CudaLink>
+      <Optimization>O3</Optimization>
+    </CudaLink>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -190,9 +194,15 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <GPUDebugInfo>true</GPUDebugInfo>
       <GenerateLineInfo>true</GenerateLineInfo>
       <PtxAsOptionV>true</PtxAsOptionV>
-      <CodeGeneration>compute_20,sm_21</CodeGeneration>
+      <CodeGeneration>compute_52,sm_52</CodeGeneration>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <FastMath>true</FastMath>
+      <Optimization>InheritFromHost</Optimization>
+      <AdditionalOptions>-Xcompiler "/wd 4819" -Xptxas -dlcm=ca -prec-div=false -ftz=true -prec-sqrt=false %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
+    <CudaLink>
+      <Optimization>O3</Optimization>
+    </CudaLink>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\common\controls.cpp" />
@@ -201,6 +211,14 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pbf\interaction\pbf_neighbor_search.cpp" />
     <ClCompile Include="src\pbf\pbf_type.cpp" />
+    <ClCompile Include="src\simulator\sphere\pbf_sphere_init_cond.cpp" />
+    <ClCompile Include="src\simulator\sphere\pbf_sphere_sim.cpp" />
+    <CudaCompile Include="src\pbf\solver\cuda\boundary\pbf_plane_boundary.cu">
+      <FileType>Document</FileType>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\boundary\pbf_sphere_boundary.cu">
+      <FileType>CppCode</FileType>
+    </CudaCompile>
     <ClCompile Include="src\pbf\solver\pbf_solve.cpp" />
     <ClCompile Include="src\simulator\dam\pbf_dam_init_cond.cpp" />
     <ClCompile Include="src\simulator\dam\pbf_dam_sim.cpp" />
@@ -228,6 +246,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\pbf\kernel\cuda\pbf_kernel.h" />
     <ClInclude Include="src\pbf\pbf.h" />
     <ClInclude Include="src\pbf\pbf_type.h" />
+    <ClInclude Include="src\pbf\solver\cuda\boundary\pbf_plane_boundary.cuh" />
+    <ClInclude Include="src\pbf\solver\cuda\boundary\pbf_sphere_boundary.cuh" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_constraint.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_density.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_kernel_memorization.h" />
@@ -237,12 +257,16 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\pbf\solver\cuda\pbf_vorticity_confinement.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_xsph.h" />
     <ClInclude Include="src\pbf\solver\pbf_solve.h" />
+    <ClInclude Include="src\pbf\util\cuda\pbf_add.h" />
+    <ClInclude Include="src\pbf\util\cuda\pbf_counting_sort.h" />
     <ClInclude Include="src\pbf\util\cuda\pbf_fill.h" />
     <ClInclude Include="src\pbf\util\pbf_arrangement.h" />
     <ClInclude Include="src\pbf\util\pbf_cuda_util.h" />
     <ClInclude Include="src\simulator\dam\pbf_dam_init_cond.h" />
     <ClInclude Include="src\simulator\dam\pbf_dam_sim.h" />
     <ClInclude Include="src\simulator\pbf_base_sim.h" />
+    <ClInclude Include="src\simulator\sphere\pbf_sphere_init_cond.h" />
+    <ClInclude Include="src\simulator\sphere\pbf_sphere_sim.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\common\shader.cpp">
@@ -253,7 +277,9 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="src\pbf\interaction\cuda\pbf_neighbor_search_device_util.cu" />
+    <CudaCompile Include="src\pbf\interaction\cuda\pbf_neighbor_search_device_util.cu">
+      <FileType>Document</FileType>
+    </CudaCompile>
     <CudaCompile Include="src\pbf\interaction\cuda\pbf_neighbor_search_util.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_constraint.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_density.cu" />
@@ -263,6 +289,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="src\pbf\solver\cuda\pbf_update.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_vorticity_confinement.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_xsph.cu" />
+    <CudaCompile Include="src\pbf\util\cuda\pbf_add.cu" />
+    <CudaCompile Include="src\pbf\util\cuda\pbf_counting_sort.cu" />
     <CudaCompile Include="src\pbf\util\cuda\pbf_fill.cu" />
   </ItemGroup>
   <ItemGroup>

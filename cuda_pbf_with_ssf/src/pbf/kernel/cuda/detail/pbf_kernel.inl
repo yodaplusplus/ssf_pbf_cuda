@@ -21,20 +21,19 @@ namespace detail {
 //const scalar_t inv_pi = glm::one_over_pi<scalar_t>();
 
 // Lucy 1977 for density calculation
-__host__ __device__ inline scalar_t WLucy1977(scalar_t r, scalar_t h)
+__host__ __device__ inline scalar_t WLucy1977(scalar_t r, scalar_t inv_h)
 {
 	const scalar_t inv_pi = 0.3183098861;
-	auto q = r / h;
+	auto q = r * inv_h;
 	if (0.0 <= q && q <= 1.0)
-		return (105.0 / 16.0 * inv_pi / pow(h, 3)) * (1.0 + 3.0 * q) * pow(1.0 - q, 3);
+		return (105.0 / 16.0 * inv_pi * pow(inv_h, 3)) * (1.0 + 3.0 * q) * pow(1.0 - q, 3);
 	else
 		return 0.0;
 }
 
-__host__ __device__ inline scalar_t Wpoly6(scalar_t r, scalar_t h)
+__host__ __device__ inline scalar_t Wpoly6(scalar_t r, scalar_t inv_h)
 {
 	//const scalar_t inv_pi = 0.3183098861;
-	auto inv_h = 1.f / h;
 	auto q = r * inv_h;
 	//auto alpha = 315.f / 64.f * inv_pi / (h*h*h);
 	//auto alpha = 4.921875f * inv_pi / (h*h*h);
@@ -48,15 +47,15 @@ __host__ __device__ inline scalar_t Wpoly6(scalar_t r, scalar_t h)
 		return 0.f;
 }
 
-__host__ __device__ inline scalar_t WspikyDerivative(scalar_t r, scalar_t h)
+__host__ __device__ inline scalar_t WspikyDerivative(scalar_t r, scalar_t inv_h)
 {
 	//const scalar_t inv_pi = 0.3183098861;
-	auto q = r / h;
-	auto h2 = h * h;
+	auto q = r * inv_h;
+	auto inv_h2 = inv_h * inv_h;
 	if (q <= 1.f) {
 		auto t = 1.f - q;
-		auto h4 = h2 * h2;
-		return -14.3239448745f / h4 * t * t;
+		auto inv_h4 = inv_h2 * inv_h2;
+		return -14.3239448745f * inv_h4 * t * t;
 		//return -45.f * inv_pi / (h*h*h*h) * (1.f - q) * (1.f - q);
 	}
 	else

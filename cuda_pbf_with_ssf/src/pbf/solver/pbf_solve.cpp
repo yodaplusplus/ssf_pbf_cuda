@@ -34,7 +34,8 @@ void solveConstraint(
 	)
 {
 	auto& h = smoothing_length;
-	static auto k = pow(kernel::cuda::weight<kernel::cuda::PBFKERNEL>(h * 0.4f, h), 4);
+	const auto inv_h = 1.f / h;
+	static auto k = pow(kernel::cuda::weight<kernel::cuda::PBFKERNEL>(h * 0.4f, inv_h), 4);
 	cuda::pu::setConstantMemory(smoothing_length, particle_mass, inv_stable_density, k);
 
 	for (int itr = 0; itr < num_iteration; ++itr) {
@@ -59,7 +60,8 @@ void solveConstraint(
 	)
 {
 	auto& h = smoothing_length;
-	static auto k = pow(kernel::cuda::weight<kernel::cuda::PBFKERNEL>(h * 0.4f, h), 4);
+	const auto inv_h = 1.f / h;
+	static auto k = pow(kernel::cuda::weight<kernel::cuda::PBFKERNEL>(h * 0.4f, inv_h), 4);
 	cuda::pu::setConstantMemory(smoothing_length, particle_mass, inv_stable_density, k);
 
 	for (int itr = 0; itr < num_iteration; ++itr) {
@@ -118,27 +120,29 @@ void one_step(
 	int num_solver_iteration
 	)
 {
+	// cuda state
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
+	
+	// rename
 	auto& phase = simulatee.phase;
 	auto& param = simulatee.parameter;
 	auto ns = simulatee.ns;
 	const uint32_t num_particle = simulatee.phase.num;
+	const auto inv_rho0 = 1.f / param.stable_density;
+	const auto m = param.particle_mass;
+	const auto h = param.smoothing_length;
+	const auto inv_t = 1.f / param.time_step;
 
 	predict(buf.interim.x, buf.interim.v, phase.x, phase.v, simulatee.external.body_force, param.time_step, num_particle);
 
 	//ns.reorderDataAndFindCellStart(buf.sorted_predicted_pos, buf.interim.x, buf.sorted_old_pos, phase.x, num_particle);
 	ns->detectNeighbors(buf.sorted_predicted_pos, buf.interim.x, buf.sorted_old_pos, phase.x, param.smoothing_length, num_particle);
 
-	auto inv_rho0 = 1.f / param.stable_density;
-	auto m = param.particle_mass;
-	auto h = param.smoothing_length;
-
 	solveConstraint(buf.sorted_predicted_pos, buf.delta_position, buf.scaling_factor, 
 		buf.kernels, buf.grad_kernels,
 		buf.sorted_old_pos,
 		ns, inv_rho0, m, h, param.relaxation, num_solver_iteration, num_particle);
 
-	auto inv_t = 1.f / param.time_step;
 	//update(phase.x, phase.v, buf.interim.v, buf.sorted_predicted_pos, buf.sorted_old_pos, ns, inv_t, inv_rho0, m, h, param.xsph_parameter, num_particle); // no vorticity confinement
 	update(phase.x, phase.v, buf.interim.v, buf.vorticity, buf.sorted_predicted_pos, buf.sorted_old_pos, ns, inv_t, inv_rho0, m, h, param.xsph_parameter, param.vc_parameter, num_particle);
 	//cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);

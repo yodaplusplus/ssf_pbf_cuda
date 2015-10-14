@@ -1,4 +1,4 @@
-#version 330
+#version 450
 
 layout(std140) uniform Scene {
 	mat4x4 Projection;

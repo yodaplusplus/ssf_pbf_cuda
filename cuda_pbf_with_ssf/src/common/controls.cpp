@@ -1,5 +1,6 @@
 #include "controls.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 glm::mat4 controls::getViewMatrix(){
 	return view_mat;
@@ -10,9 +11,10 @@ glm::mat4 controls::getProjectionMatrix(){
 
 controls::controls(GLFWwindow* arg_window) :
 window(arg_window),
-camera_pos(glm::vec3(2.0, 4.0, 10.0)),  // Initial position : on +Z
-horizontal_angle(3.14f), // Initial horizontal angle : toward -Z
-vertical_angle(0.f), // Initial vertical angle : none
+//camera_pos(glm::vec3(2.0, 4.0, 10.0)),  // Initial position : on +Z
+camera_pos(glm::vec3(-4.4484, 5.79044, 1.16664)),  // Initial position : on +Z
+horizontal_angle(0.4393 * glm::pi<float>()), // Initial horizontal angle : toward -Z
+vertical_angle(glm::pi<float>() * -0.181f), // Initial vertical angle : none
 initial_fov(45.0f),
 speed(3.f), // 3 units / seconds
 mouse_speed(0.0008f),
@@ -31,6 +33,9 @@ far(50.f)
 }
 
 void controls::computeMatricesFromInputs(){
+	//std::cout << camera_pos.x << ", " << camera_pos.y << ", " << camera_pos.z << std::endl;
+	//std::cout << horizontal_angle / glm::pi<float>() << ", " << vertical_angle / glm::pi<float>() << std::endl;
+
 	// Compute time difference between current and last frame
 	double currentTime = glfwGetTime();
 	float deltaTime = float(currentTime - last_time);

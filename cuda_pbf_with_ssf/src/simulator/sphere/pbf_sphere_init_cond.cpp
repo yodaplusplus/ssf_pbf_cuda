@@ -1,22 +1,22 @@
-#include "pbf_dam_init_cond.h"
+#include "pbf_sphere_init_cond.h"
 #include "../../pbf/util/pbf_arrangement.h"
 #include "../../pbf/util/cuda/pbf_fill.h"
 
 namespace pbf {
 ;
-pbf_dam_init_cond::pbf_dam_init_cond(scalar_t space) :
-domain_origin(dom_dim(1.0f)),
-domain_end(dom_dim(10.f)),
-fluid_origin(dom_dim(2.25f)),
-fluid_end(dom_dim(5.65f))
+pbf_sphere_init_cond::pbf_sphere_init_cond(scalar_t space) :
+domain_origin(dom_dim(0.1f)),
+domain_end(dom_dim(8.f)),
+fluid_origin(dom_dim(2.f)),
+fluid_end(dom_dim(4.f))
 {
 	param.stable_density = 1.0e+3;
 	param.stable_distance = space;
 	const double particle_volume = pow(param.stable_distance, 3);
 	param.particle_mass = particle_volume * param.stable_density;
 	param.smoothing_length = 1.4f * param.stable_distance;
-	param.time_step = 0.015f;
-	param.relaxation = 1.f / (space * space); // notice that this unit is m^-2
+	param.time_step = 0.007f;
+	param.relaxation = 2.f / (space * space); // notice that this unit is m^-2
 	param.xsph_parameter = 0.1f;
 	param.vc_parameter = 0.005f;
 
@@ -48,12 +48,12 @@ namespace {
 	}
 }	// end of unnamed ns
 
-void pbf_dam_init_cond::getDomainParticlePhaseHost(dom_dim* pos, dom_dim* vel, uint32_t* particle_num) const
+void pbf_sphere_init_cond::getDomainParticlePhaseHost(dom_dim* pos, dom_dim* vel, uint32_t* particle_num) const
 {
 	bodyH(pos, vel, particle_num, param.stable_distance, fluid_origin, fluid_end);
 }
 
-void pbf_dam_init_cond::getDomainParticlePhaseHost(std::vector<dom_dim>& pos, std::vector<dom_dim>& vel) const
+void pbf_sphere_init_cond::getDomainParticlePhaseHost(std::vector<dom_dim>& pos, std::vector<dom_dim>& vel) const
 {
 	cartesian_volume(pos, fluid_origin, fluid_end, param.stable_distance);
 	for (size_t i = 0; i < pos.size(); ++i) {
@@ -61,22 +61,22 @@ void pbf_dam_init_cond::getDomainParticlePhaseHost(std::vector<dom_dim>& pos, st
 	}
 }
 
-void pbf_dam_init_cond::getDomainParticlePhaseDevice(dom_dim* pos, dom_dim* vel, uint32_t* particle_num) const
+void pbf_sphere_init_cond::getDomainParticlePhaseDevice(dom_dim* pos, dom_dim* vel, uint32_t* particle_num) const
 {
 	bodyD(pos, vel, particle_num, param.stable_distance, fluid_origin, fluid_end);
 }
 
-void pbf_dam_init_cond::getParameter(pbf_parameter& arg_param)
+void pbf_sphere_init_cond::getParameter(pbf_parameter& arg_param)
 {
 	memcpy(&arg_param, &param, sizeof(pbf_parameter));
 }
 
-void pbf_dam_init_cond::getExternalForce(pbf_external& arg_external)
+void pbf_sphere_init_cond::getExternalForce(pbf_external& arg_external)
 {
 	memcpy(&arg_external, &external, sizeof(pbf_external));
 }
 
-std::pair<dom_dim, dom_dim> pbf_dam_init_cond::getDomainRange() const
+std::pair<dom_dim, dom_dim> pbf_sphere_init_cond::getDomainRange() const
 {
 	return std::make_pair(domain_origin, domain_end);
 }

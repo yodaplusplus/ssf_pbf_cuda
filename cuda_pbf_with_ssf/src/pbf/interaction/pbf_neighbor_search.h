@@ -56,12 +56,23 @@ public:
 private:
 	uint32_t* neighbor_list;
 	hash_index_t hash_index;
+	hash_index_t sorted_hash_index;
 	uint32_t* cell_start;
 	uint32_t* cell_end;
 	scalar_t cell_width;
 	dom_udim grid_size;
 	uint32_t max_particle_num;
 	uint32_t max_pair_particle_num;
+	// temporary storage for cub
+	void* temp_cub_storage;
+	size_t temp_cub_storage_size;
+	// storage for counting sort
+	uint32_t* cell_count;
+	uint32_t* cumulative_cell_count;
+	uint32_t* hash_count;
+	// z-order hash
+	uint64_t* zorder_hash;
+	uint64_t* sorted_zorder_hash;
 };
 
 } // end of pbf ns

@@ -13,7 +13,7 @@ pbf_dam_sim::pbf_dam_sim(scalar_t space)
 	init_cond->getParameter(simulatee.parameter);
 	init_cond->getExternalForce(simulatee.external);
 	auto domain = init_cond->getDomainRange();
-	const auto num_capacity = 20000;
+	const auto num_capacity = 40000;
 	simulatee.allocate(num_capacity, domain.second);
 	buffer.allocate(num_capacity, simulatee.ns->getMaxPairParticleNum());
 	vector<glm::vec3> x;
@@ -48,6 +48,8 @@ pbf_dam_sim::~pbf_dam_sim()
 
 void pbf_dam_sim::simulateOneStep()
 {
+	//simulatee.external.body_force
+
 	cudaGraphicsMapResources(1, &cu_res);
 #ifndef NDEBUG
 	gpuErrchk(cudaPeekAtLastError());
@@ -59,7 +61,7 @@ void pbf_dam_sim::simulateOneStep()
 	gpuErrchk(cudaPeekAtLastError());
 	gpuErrchk(cudaDeviceSynchronize());
 #endif
-	one_step(simulatee, buffer, 4);
+	one_step(simulatee, buffer, 3);
 	cudaGraphicsUnmapResources(1, &cu_res);
 	simulatee.phase.x = NULL;
 }

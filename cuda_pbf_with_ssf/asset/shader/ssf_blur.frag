@@ -1,4 +1,4 @@
-#version 330
+#version 450
 #pragma optionNV(fastmath on)
 #pragma optionNV(inline all)
 #pragma optionNV (unroll all)
@@ -25,6 +25,7 @@ out float out_depth;
 //Depth used in the Z buffer is not linearly related to distance from camera
 //This restores linear depth
 float linearizeDepth(float exp_depth, float near, float far) {
+
 	return	(2 * near) / (far + near -  exp_depth * (far - near));
 }
 
@@ -49,7 +50,7 @@ void main()
 	float wsum = 0;
 
 	if(exp_depth == 1.0f){
-		out_depth = exp_depth;
+		out_depth = 1.0f;
 		return;
 	}
 
@@ -57,35 +58,76 @@ void main()
 	float dist = length(position);
 	float blurRadius = blur_radius * blur_scale / dist;
 
-	const int windowWidth = 5;
+	const int windowWidth = 4;
 	for(int x = -windowWidth; x < windowWidth; x++){
-	    for(int y = -windowWidth; y < windowWidth; y++){
-		      vec2 sample_coord = vec2(tex_coord.s + x*blurRadius, tex_coord.t + y*blurRadius);
-		      float sampleDepth = texture(tex_depth, sample_coord).r;
-					float sample_lin_depth = linearizeDepth(sampleDepth, proj_near, proj_far);
+      vec2 sample_coord = vec2(tex_coord.s + x*blurRadius, tex_coord.t);
+      float sampleDepth = texture(tex_depth, sample_coord).r;
+			float sample_lin_depth = linearizeDepth(sampleDepth, proj_near, proj_far);
 
-		      // if(sampleDepth != 1.0f){
-		      if(sampleDepth != 1.0f){
-	            //Spatial
-		          float r = length(vec2(x,y)) * blurRadius;
-		          float w = exp(-r*r);
+      // if(sampleDepth != 1.0f){
+      if(sampleDepth != 1.0f){
+          //Spatial
+          float r = x * x * blurRadius;
+          float w = exp(-r);
 
-		          //Range
-		          float r2 = (sample_lin_depth - lin_depth) * 200.0f;
-		          float g = exp(-r2*r2);
-
-		          sum += sample_lin_depth * w * g;
-		          wsum += w * g;
-	        }
-					else {
-						//Spatial
-						float r = length(vec2(x,y)) * blurRadius;
-						float w = exp(-r*r);
-
-						sum += lin_depth * w;
-						wsum += w;
+          //Range
+					float r2 = 0.0f;
+					float pair_depth = 0.0f;
+					float diff = sample_lin_depth - lin_depth;
+					if(abs(diff) < 0.01f) {
+        		r2 = diff * 100.0f;
 					}
-	    }
+					else {
+						r2 = 0.f;
+					}
+          float g = exp(-r2*r2);
+
+          sum += sample_lin_depth * w * g;
+          wsum += w * g;
+      }
+			else {
+				//Spatial
+				float r = x * x * blurRadius;
+				float w = exp(-r);
+
+				sum += sample_lin_depth * w;
+				wsum += w;
+			}
+	}
+	for(int y = -windowWidth; y < windowWidth; y++){
+			vec2 sample_coord = vec2(tex_coord.s, tex_coord.t + y*blurRadius);
+			float sampleDepth = texture(tex_depth, sample_coord).r;
+			float sample_lin_depth = linearizeDepth(sampleDepth, proj_near, proj_far);
+
+			// if(sampleDepth != 1.0f){
+			if(sampleDepth != 1.0f){
+					//Spatial
+					float r = y * y * blurRadius;
+					float w = exp(-r);
+
+					//Range
+					float r2 = 0.0f;
+					float pair_depth = 0.0f;
+					float diff = sample_lin_depth - lin_depth;
+					if(abs(diff) < 0.01f) {
+						r2 = diff * 100.0f;
+					}
+					else {
+						r2 = 0.f;
+					}
+					float g = exp(-r2*r2);
+
+					sum += sample_lin_depth * w * g;
+					wsum += w * g;
+			}
+			else {
+				//Spatial
+				float r = y * y * blurRadius;
+				float w = exp(-r);
+
+				sum += sample_lin_depth * w;
+				wsum += w;
+			}
 	}
 
 	if(wsum > 0.0f){

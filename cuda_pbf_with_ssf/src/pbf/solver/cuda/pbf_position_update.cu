@@ -38,14 +38,15 @@ __device__ dom_dim calcPositionUpdatePair(const dom_dim& self_pos, scalar_t self
 	auto pos_diff = self_pos - pair_pos;
 	auto r = length_opt(pos_diff);
 	auto direction = pos_diff / r;
+	const auto inv_h = 1.f / h;
 
-	auto kr = kernel::cuda::weight<kernel_t>(r, h);
+	auto kr = kernel::cuda::weight<kernel_t>(r, inv_h);
 	auto kr2 = kr * kr;
 	auto kr4 = kr2 * kr2;
 	auto tensile_correction = 10.f * kr4 * inv_k;
 	auto self_clamped_scale = (self_scale < 0.f) ? -self_scale : 0.f;
 	auto support_clamped_scale = (pair_scale < 0.f) ? -pair_scale : 0.f;
-	auto wd = kernel::cuda::weight_deriv<kernel_t>(r, h);
+	auto wd = kernel::cuda::weight_deriv<kernel_t>(r, inv_h);
 	auto clamped_scale = self_clamped_scale + support_clamped_scale;
 
 	auto scale_correction = clamped_scale * tensile_correction;
@@ -129,13 +130,13 @@ void calcPositionUpdate(
 
 namespace {
 template<typename kernel_t>
-__device__ dom_dim calcPositionUpdatePair(scalar_t self_scale, scalar_t pair_scale,
+__device__ dom_dim calcPositionUpdatePair(scalar_t self_clamped_scale, scalar_t self_scale, scalar_t pair_scale,
 	scalar_t kernel, const dom_dim& grad_kernel)
 {
 	auto kr2 = kernel * kernel;
 	auto kr4 = kr2 * kr2;
 	auto tensile_correction = 10.f * kr4 * inv_k;
-	auto self_clamped_scale = (self_scale < 0.f) ? -self_scale : 0.f;
+
 	auto support_clamped_scale = (pair_scale < 0.f) ? -pair_scale : 0.f;
 	auto clamped_scale = self_clamped_scale + support_clamped_scale;
 
@@ -163,9 +164,11 @@ __global__ void calcPositionUpdateCUDA(
 	if (index >= num_particle) return;
 
 	const auto self_scale = scaling_factor[index];
+
 	// Contribution Calculation
 	dom_dim sum_position_update(0.f);
 	uint32_t pair_cnt = 0;
+	auto self_clamped_scale = (self_scale < 0.f) ? -self_scale : 0.f;
 	while (true) {
 		uint32_t neigbor_list_index = getNeighborListIndex(index, pair_cnt, max_pair_particle_num);
 		uint32_t pair_index = neighbor_list[neigbor_list_index];
@@ -173,7 +176,7 @@ __global__ void calcPositionUpdateCUDA(
 			const auto kernel = kernels[neigbor_list_index];
 			const auto pair_scale = scaling_factor[pair_index];
 			const auto grad_kernel = grad_kernels[neigbor_list_index];
-			dom_dim position_update = calcPositionUpdatePair<kernel_t>(self_scale, pair_scale, kernel, grad_kernel);
+			dom_dim position_update = calcPositionUpdatePair<kernel_t>(self_clamped_scale, self_scale, pair_scale, kernel, grad_kernel);
 			sum_position_update += position_update;
 			pair_cnt++;
 		}

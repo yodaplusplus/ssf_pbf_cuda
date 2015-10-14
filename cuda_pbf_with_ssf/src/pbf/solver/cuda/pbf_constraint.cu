@@ -4,6 +4,8 @@
 #include "../../util/pbf_cuda_util.h"
 #include "../../interaction/cuda/pbf_grid.h"
 #include "../../interaction/cuda/pbf_neighbor_search_device_util.cuh"
+#include "boundary/pbf_plane_boundary.cuh"
+#include "boundary/pbf_sphere_boundary.cuh"
 #include <thrust/device_vector.h>
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
@@ -57,6 +59,7 @@ namespace pbf {
 namespace cuda {
 
 namespace {
+#pragma region scaling_factor
 template<typename kernel_t>
 __device__ scaling_t calcScalingFactorPair(
 	const dom_dim& self_pos,
@@ -65,13 +68,14 @@ __device__ scaling_t calcScalingFactorPair(
 	auto pos_diff = self_pos - pair_pos;
 	auto r = glm::length(pos_diff);
 	auto direction = pos_diff / r;
+	const auto inv_h = 1.f / h;
 
 	//auto k = pbf::kernel::cuda::weight<kernel_t>(r, smoothing_length);
-	auto k = pbf::kernel::cuda::weight<kernel_t>(r, h);
+	auto k = pbf::kernel::cuda::weight<kernel_t>(r, inv_h);
 
 	dom_dim kg(0.f);
 	if (r > 0.f) {
-		kg = pbf::kernel::cuda::weight_deriv<kernel_t>(r, h) * direction;
+		kg = pbf::kernel::cuda::weight_deriv<kernel_t>(r, inv_h) * direction;
 	}
 
 	auto kg2 = dot_opt(kg, kg);
@@ -134,7 +138,7 @@ void calcScalingFactor(
 	typedef kernel::cuda::PBFKERNEL kernel_t;
 
 	uint32_t num_thread, num_block;
-	computeGridSize(num_particle, 192, num_block, num_thread);
+	computeGridSize(num_particle, 128, num_block, num_thread);
 
 	using namespace std;
 	auto neighbor_list = ns->getNeighborList();
@@ -156,7 +160,8 @@ template<typename kernel_t>
 __device__ scalar_t calcScalingFactorPair(
 	const dom_dim& grad_kernel)
 {
-	auto kg2 = dot_opt(grad_kernel, grad_kernel);
+	auto kg2 = fmaf(grad_kernel.z, grad_kernel.z, fmaf(grad_kernel.y, grad_kernel.y, grad_kernel.x * grad_kernel.x));
+	//auto kg2 = dot_opt(grad_kernel, grad_kernel);
 	return kg2;
 }
 
@@ -193,10 +198,12 @@ __global__ void calcScalingFactorCUDA(
 			break;
 	}
 
-	auto constraint = sum_scaling_factor.ks * m * inv_rho0 - 1.f;
-	auto kg2s = sum_scaling_factor.kg2s + glm::dot(sum_scaling_factor.kgs, sum_scaling_factor.kgs);
+	auto constraint = fmaf(sum_scaling_factor.ks * m, inv_rho0, - 1.f);
+	auto kg2s = fmaf(sum_scaling_factor.kgs.x, sum_scaling_factor.kgs.x, fmaf(sum_scaling_factor.kgs.z, sum_scaling_factor.kgs.z,
+		fmaf(sum_scaling_factor.kgs.y, sum_scaling_factor.kgs.y, sum_scaling_factor.kg2s)));
 
-	auto s = constraint / (m * m * pow(inv_rho0, 2) * kg2s + relaxation);
+	auto m2_rho2 = m * m * inv_rho0 * inv_rho0;
+	auto s = constraint / (fmaf(m2_rho2, kg2s, relaxation));
 
 	scaling_factor[index] = s;
 }
@@ -234,6 +241,8 @@ void calcScalingFactor(
 #endif
 }
 
+#pragma endregion
+
 namespace {
 	// intersection of p1-p2 line and plane, no exception handling
 	__host__ __device__ dom_dim intersection(dom_dim p1, dom_dim p2, const glm::vec4& plane) {
@@ -250,7 +259,6 @@ namespace {
 	}
 } // end of unnamed ns
 
-
 __global__ void responseCollisionCUDA(
 	dom_dim* position_update,
 	const dom_dim* predicted_position,
@@ -261,70 +269,42 @@ __global__ void responseCollisionCUDA(
 	const uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= num_particle) return;
 
+	auto delta_p = position_update[index];
 	auto predicted_x = predicted_position[index];
 	auto old_x = predicted_position[index];
-	auto delta_p = position_update[index];
 	//if (index == 0)
 	//	printf("%f, %f, %f\n", delta_p.x, delta_p.y, delta_p.z);
 
 	while (true) {
 		auto p = predicted_x + delta_p;
-		dom_dim sim_origin(0.2f);
+		dom_dim sim_origin(2.2f);
+		dom_dim sim_end(6.5f);
 		bool collision_check = false;
-		if (p.y < sim_origin.y) { // bottom
-			collision_check = true;
-			dom_dim n(0.f, 1.f, 0.f);
-			auto d = -glm::dot(n, sim_origin);
-			auto qc = intersection(old_x, p, glm::vec4(n, d));
-			auto di = p - qc;
-			auto constraint = glm::dot(di, n);
-			delta_p += -constraint * n;
-		}
-		if (p.y > 6.f) { // top
-			collision_check = true;
-			dom_dim n(0.f, -1.f, 0.f);
-			auto d = -glm::dot(n, glm::vec3(0.f, 6.f, 0.f));
-			auto qc = intersection(old_x, p, glm::vec4(n, d));
-			auto di = p - qc;
-			auto constraint = glm::dot(di, n);
-			delta_p += -constraint * n;
-		}
-		if (p.x < sim_origin.x) { // left wall
-			collision_check = true;
-			dom_dim n(1.f, 0.f, 0.f);
-			auto d = -glm::dot(n, sim_origin);
-			auto qc = intersection(old_x, p, glm::vec4(n, d));
-			auto di = p - qc;
-			auto constraint = glm::dot(di, n);
-			delta_p += -constraint * n;
-		}
-		if (p.x > 6.f) { // right wall
-			collision_check = true;
-			dom_dim n(-1.f, 0.f, 0.f);
-			auto d = -glm::dot(n, glm::vec3(6.f, 0.f, 0.f));
-			auto qc = intersection(old_x, p, glm::vec4(n, d));
-			auto di = p - qc;
-			auto constraint = glm::dot(di, n);
-			delta_p += -constraint * n;
-		}
-		if (p.z < sim_origin.z) { // front
-			collision_check = true;
-			dom_dim n(0.f, 0.f, 1.f);
-			auto d = -glm::dot(n, sim_origin);
-			auto qc = intersection(old_x, p, glm::vec4(n, d));
-			auto di = p - qc;
-			auto constraint = glm::dot(di, n);
-			delta_p += -constraint * n;
-		}
-		if (p.z > 6.f) { // back
-			collision_check = true;
-			dom_dim n(0.f, 0.f, -1.f);
-			auto d = -glm::dot(n, glm::vec3(0.f, 0.f, 6.f));
-			auto qc = intersection(old_x, p, glm::vec4(n, d));
-			auto di = p - qc;
-			auto constraint = glm::dot(di, n);
-			delta_p += -constraint * n;
-		}
+#if 0
+		// bottom
+		responsePlaneBoundary(collision_check, delta_p, old_x, p, sim_origin, dom_dim(0.f, 1.f, 0.f));
+		// top
+		responsePlaneBoundary(collision_check, delta_p, old_x, p, sim_end, dom_dim(0.f, -1.f, 0.f));
+		// left wall
+		responsePlaneBoundary(collision_check, delta_p, old_x, p, sim_origin, dom_dim(1.f, 0.f, 0.f));
+		// right wall
+		responsePlaneBoundary(collision_check, delta_p, old_x, p, sim_end, dom_dim(-1.f, 0.f, 0.f));
+		// front
+		responsePlaneBoundary(collision_check, delta_p, old_x, p, sim_origin, dom_dim(0.f, 0.f, 1.f));
+		// back
+		responsePlaneBoundary(collision_check, delta_p, old_x, p, sim_end, dom_dim(0.f, 0.f, -1.f));
+#endif
+
+#if 1
+		// in a sphere
+		responseInnerSphereBoundary(collision_check, delta_p, old_x, p, dom_dim(3.f, 3.f, 3.f), 3.f);
+
+		p = predicted_x + delta_p;
+
+		// sphere obstacles
+		responseOuterSphereBoundary(collision_check, delta_p, old_x, p, dom_dim(3.f, 0.f, 3.f), 1.f);
+#endif
+
 		if (!collision_check) {
 			break;
 		}

@@ -52,6 +52,12 @@
     <Filter Include="simulator\dam">
       <UniqueIdentifier>{4770916a-ff06-412c-ba7a-cf51102ba755}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pbf\solver\cuda\boundary">
+      <UniqueIdentifier>{848c17eb-3330-48c8-a2ab-15e25c242537}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="simulator\sphere">
+      <UniqueIdentifier>{a86f2f08-4f8f-45d6-82c8-5cb42664a6ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common_core.h">
@@ -162,6 +168,24 @@
     <ClInclude Include="src\pbf\solver\cuda\pbf_kernel_memorization.h">
       <Filter>pbf\solver\cuda</Filter>
     </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\boundary\pbf_sphere_boundary.cuh">
+      <Filter>pbf\solver\cuda\boundary</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\boundary\pbf_plane_boundary.cuh">
+      <Filter>pbf\solver\cuda\boundary</Filter>
+    </ClInclude>
+    <ClInclude Include="src\simulator\sphere\pbf_sphere_init_cond.h">
+      <Filter>simulator\sphere</Filter>
+    </ClInclude>
+    <ClInclude Include="src\simulator\sphere\pbf_sphere_sim.h">
+      <Filter>simulator\sphere</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\util\cuda\pbf_counting_sort.h">
+      <Filter>pbf\util\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\util\cuda\pbf_add.h">
+      <Filter>pbf\util\cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\common\controls.cpp">
@@ -198,6 +222,12 @@
     <ClCompile Include="src\simulator\dam\pbf_dam_sim.cpp">
       <Filter>simulator\dam</Filter>
     </ClCompile>
+    <ClCompile Include="src\simulator\sphere\pbf_sphere_init_cond.cpp">
+      <Filter>simulator\sphere</Filter>
+    </ClCompile>
+    <ClCompile Include="src\simulator\sphere\pbf_sphere_sim.cpp">
+      <Filter>simulator\sphere</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\pbf\interaction\cuda\pbf_neighbor_search_util.cu">
@@ -227,11 +257,23 @@
     <CudaCompile Include="src\pbf\solver\cuda\pbf_density.cu">
       <Filter>pbf\solver\cuda</Filter>
     </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_kernel_memorization.cu">
+      <Filter>pbf\solver\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\util\cuda\pbf_counting_sort.cu">
+      <Filter>pbf\util\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\boundary\pbf_plane_boundary.cu">
+      <Filter>pbf\solver\cuda\boundary</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\boundary\pbf_sphere_boundary.cu">
+      <Filter>pbf\solver\cuda\boundary</Filter>
+    </CudaCompile>
     <CudaCompile Include="src\pbf\interaction\cuda\pbf_neighbor_search_device_util.cu">
       <Filter>pbf\interaction\cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="src\pbf\solver\cuda\pbf_kernel_memorization.cu">
-      <Filter>pbf\solver\cuda</Filter>
+    <CudaCompile Include="src\pbf\util\cuda\pbf_add.cu">
+      <Filter>pbf\util\cuda</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>

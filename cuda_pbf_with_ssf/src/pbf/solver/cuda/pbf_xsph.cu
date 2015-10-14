@@ -22,7 +22,8 @@ __device__ dom_dim calcXSPHEach(uint32_t helper_index, const dom_dim& self_pos, 
 	auto r = glm::length(pos_diff);
 	auto vel_diff = pair_vel - self_vel;
 
-	auto kr = pbf::kernel::cuda::weight<kernel_t>(r, h);
+	const auto inv_h = 1.f / h;
+	auto kr = pbf::kernel::cuda::weight<kernel_t>(r, inv_h);
 
 	return vel_diff * kr;
 }

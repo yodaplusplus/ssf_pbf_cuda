@@ -16,6 +16,7 @@
 #include "device_resource\swTextures.h"
 
 #include "simulator\dam\pbf_dam_sim.h"
+#include "simulator\sphere\pbf_sphere_sim.h"
 
 using namespace std;
 
@@ -36,8 +37,8 @@ int main(void) {
 		return -1;
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
@@ -66,18 +67,19 @@ int main(void) {
 #pragma endregion
 
 #pragma region gl_state_init
-	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS);
 	glClearDepth(1.f);
-	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
+	//glClearColor(1.f, 1.f, 1.f, 1.f);
+	//glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClearColor(0.6f, 0.6f, 0.6f, 1.f);
 #pragma endregion
 
 	auto controller = std::make_shared<controls>(window);
 
-	auto sim = std::make_shared<pbf::pbf_dam_sim>(0.16f);
+	auto sim = std::make_shared<pbf::pbf_sphere_sim>(0.1f);
+	//auto sim = std::make_shared<pbf::pbf_dam_sim>(0.16f);
 
 #pragma region ubo_init
 	swUBOs::getInstance().enroll("scene");
@@ -144,7 +146,8 @@ int main(void) {
 #pragma endregion
 
 #pragma region ssf_blur
-	const float blur_radius = 0.0000035f;
+	//const float blur_radius = 0.0000035f;
+	const float blur_radius = 0.0000055f;
 
 #pragma region shader_init
 	const auto ssf_blur_shader_id = LoadShaders("asset/shader/ssf_blur.vert", "asset/shader/ssf_blur.frag");
@@ -290,7 +293,11 @@ int main(void) {
 
 #pragma region simulation
 		{
-			sim->simulateOneStep();
+			static bool is_stopped = false;
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+				is_stopped = is_stopped ? false : true;
+			if (!is_stopped)
+				sim->simulateOneStep();
 		}
 #pragma endregion
 
@@ -321,7 +328,7 @@ int main(void) {
 			// uniform per shader
 			const auto world = glm::mat4(1.f);
 			glUniformMatrix4fv(glGetUniformLocation(ssf_shader_id, "World"), 1, GL_FALSE, &world[0][0]);
-			glUniform1f(glGetUniformLocation(ssf_shader_id, "point_radius"), 0.25f);
+			glUniform1f(glGetUniformLocation(ssf_shader_id, "point_radius"), 0.2f);
 
 			// draw
 			glBindVertexArray(swVAOs::getInstance().find("ssf_object"));
