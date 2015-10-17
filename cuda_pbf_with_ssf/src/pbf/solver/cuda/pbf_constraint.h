@@ -28,6 +28,7 @@ void calcScalingFactor(
 	int num_particle
 	);
 
+// embedded boundary
 void responseCollision(
 	dom_dim* position_update,
 	const dom_dim* predicted_position,

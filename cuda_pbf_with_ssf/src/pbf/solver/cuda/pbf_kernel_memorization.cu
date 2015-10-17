@@ -68,8 +68,9 @@ __global__ void memorizeKernelCUDA(
 	const uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= num_particle) return;
 
-	const auto self_pos = position[index];
 	const auto inv_h = 1.f / h;
+	const auto self_pos = position[index];
+
 	const auto inv_h2 = inv_h * inv_h;
 	const auto alpha_kernel = 1.56668147065f * inv_h * inv_h2;
 	const auto alpha_kernel_deriv = -14.3239448745f * inv_h2 * inv_h2;
@@ -95,8 +96,8 @@ template<typename kernel_t>
 __global__ void memorizeKernelCUDA(
 	scalar_t* kernels,
 	dom_dim* grad_kernels,
-	const dom_dim* position,
-	const uint32_t* neighbor_list,
+	const dom_dim* __restrict__ position,
+	const uint32_t* __restrict__ neighbor_list,
 	uint32_t max_pair_particle_num,
 	int num_particle
 	)

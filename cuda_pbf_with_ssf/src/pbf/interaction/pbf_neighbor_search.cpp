@@ -10,7 +10,7 @@ neighbor_search::neighbor_search(
 	uint32_t arg_num,
 	scalar_t arg_cell_width,
 	dom_udim arg_grid_size) :
-	max_pair_particle_num(50)
+	max_pair_particle_num(30)
 {
 	max_particle_num = arg_num;
 	cell_width = arg_cell_width;
@@ -123,6 +123,7 @@ void neighbor_search::detectNeighbors(
 			sorted_hash_index.d_hash, sorted_hash_index.d_index, cell_start, cell_end,
 			cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
 #else
+#ifdef USE_ZORDER
 		// z-order hashing
 		//pbf::cuda::calcZOrderHash(zorder_hash, hash_index.d_index, old_predicted_position, cell_width, grid_size, num_particle);
 		//pbf::cuda::fill(hash_count, 0, num_particle);
@@ -134,7 +135,7 @@ void neighbor_search::detectNeighbors(
 		//pbf::cuda::reorderData(sorted_current_position, old_current_position, sorted_hash_index.d_index, num_particle);
 		//pbf::cuda::detectNeighbors(neighbor_list, sorted_predicted_position, cell_start, cell_end,
 		//	cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
-
+#else
 		// trivial indexing
 		pbf::cuda::fill(hash_count, 0, num_particle);
 		pbf::cuda::fill(cell_count, 0, total_cell);
@@ -145,7 +146,7 @@ void neighbor_search::detectNeighbors(
 		pbf::cuda::reorderData(sorted_current_position, old_current_position, sorted_hash_index.d_index, num_particle);
 		pbf::cuda::detectNeighbors(neighbor_list, sorted_predicted_position, cell_start, cell_end,
 			cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
-
+#endif
 #endif
 #endif
 	}

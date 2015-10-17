@@ -153,9 +153,9 @@ __device__ dom_dim calcPositionUpdatePair(scalar_t self_clamped_scale, scalar_t 
 template<typename kernel_t>
 __global__ void calcPositionUpdateCUDA(
 	dom_dim* pos_update,
-	const scalar_t* scaling_factor,
-	const scalar_t* kernels, const dom_dim* grad_kernels,
-	const uint32_t* neighbor_list,
+	const scalar_t* __restrict__ scaling_factor,
+	const scalar_t* __restrict__ kernels, const dom_dim* __restrict__ grad_kernels,
+	const uint32_t* __restrict__ neighbor_list,
 	uint32_t max_pair_particle_num,
 	int num_particle
 	)

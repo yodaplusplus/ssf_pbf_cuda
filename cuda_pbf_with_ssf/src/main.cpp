@@ -244,6 +244,23 @@ int main(void) {
 	swShaders::getInstance().enroll("ssf_shading", ssf_shading_shader_id);
 #pragma endregion
 
+#pragma region tex_init
+	swTextures::getInstance().enroll("ssf_shading");
+	glBindTexture(GL_TEXTURE_2D, swTextures::getInstance().find("ssf_shading"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, resolution_window.x, resolution_window.y, 0, GL_RGBA, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#pragma endregion
+
+#pragma region fbo_init
+	swFBOs::getInstance().enroll("ssf_shading");
+	glBindFramebuffer(GL_FRAMEBUFFER, swFBOs::getInstance().find("ssf_shading"));
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, swTextures::getInstance().find("ssf_shading"), 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+#pragma endregion
+
 #pragma endregion
 
 #pragma region ssf_common
@@ -286,6 +303,7 @@ int main(void) {
 		if (currentTime - lastTime >= 1.0){ // If last prinf() was more than 1 sec ago
 			// printf and reset timer
 			printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+			printf("#particle: %d\n", sim->getParticlesNum());
 			nbFrames = 0;
 			lastTime += 1.0;
 		}
@@ -328,7 +346,7 @@ int main(void) {
 			// uniform per shader
 			const auto world = glm::mat4(1.f);
 			glUniformMatrix4fv(glGetUniformLocation(ssf_shader_id, "World"), 1, GL_FALSE, &world[0][0]);
-			glUniform1f(glGetUniformLocation(ssf_shader_id, "point_radius"), 0.2f);
+			glUniform1f(glGetUniformLocation(ssf_shader_id, "point_radius"), 0.18f);
 
 			// draw
 			glBindVertexArray(swVAOs::getInstance().find("ssf_object"));
@@ -465,8 +483,12 @@ int main(void) {
 			// draw
 			glBindVertexArray(swVAOs::getInstance().find("ssf_fullscreen"));
 			glDrawArrays(GL_TRIANGLES, 0, 6);
+			// clear
+			//glBindVertexArray(0);
 		}
 #pragma endregion
+
+		sim->drawNeighborSearchArea(ubo_scene_id);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -168,9 +168,9 @@ __device__ scalar_t calcScalingFactorPair(
 template<typename kernel_t>
 __global__ void calcScalingFactorCUDA(
 	scalar_t* scaling_factor,
-	const scalar_t* kernels,
-	const dom_dim* grad_kernels,
-	const uint32_t* neighbor_list,
+	const scalar_t* __restrict__ kernels,
+	const dom_dim* __restrict__ grad_kernels,
+	const uint32_t* __restrict__ neighbor_list,
 	scalar_t relaxation,
 	uint32_t max_pair_particle_num,
 	int num_particle
@@ -302,7 +302,7 @@ __global__ void responseCollisionCUDA(
 		p = predicted_x + delta_p;
 
 		// sphere obstacles
-		responseOuterSphereBoundary(collision_check, delta_p, old_x, p, dom_dim(3.f, 0.f, 3.f), 1.f);
+		//responseOuterSphereBoundary(collision_check, delta_p, old_x, p, dom_dim(3.f, 0.f, 3.f), 2.f);
 #endif
 
 		if (!collision_check) {

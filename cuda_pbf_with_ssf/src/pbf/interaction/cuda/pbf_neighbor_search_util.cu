@@ -428,7 +428,7 @@ __device__ void searchCell(
 template<typename T>
 __device__ void searchGrid(
 	T* pair_indices, uint16_t& pair_cnt,
-	const uint32_t* cell_start, const uint32_t* cell_end,
+	const uint32_t* __restrict__ cell_start, const uint32_t* __restrict__ cell_end,
 	const dom_dim& self_pos, const dom_dim*  __restrict__ other_pos)
 {
 	auto grid = pbf::cuda::calcGridPos(self_pos, c_cell_width);
@@ -454,9 +454,9 @@ __device__ void searchGrid(
 template<typename T>
 __global__ void detectNeighborsCUDA(
 	T* neighbor_list,
-	const dom_dim*  __restrict__ position,
-	const uint32_t* paricle_hash, const uint32_t* particle_index,
-	const uint32_t* cell_start, const uint32_t* cell_end,
+	const dom_dim* __restrict__ position,
+	const uint32_t* __restrict__ paricle_hash, const uint32_t* __restrict__ particle_index,
+	const uint32_t* __restrict__ cell_start, const uint32_t* __restrict__ cell_end,
 	uint32_t num_particle
 	)
 {
@@ -467,7 +467,8 @@ __global__ void detectNeighborsCUDA(
 
 	const auto self_pos = position[index];
 	uint16_t pair_cnt = 0;
-	T* neighbot_list_local = neighbor_list + (index % 32) + (index / 32) * 32 * c_max_pair_num;
+	//T* neighbot_list_local = neighbor_list + (index % 32) + (index / 32) * 32 * c_max_pair_num;
+	T* neighbot_list_local = neighbor_list + (index & 31) + ((index >> 5) << 5) * c_max_pair_num;
 	searchGrid(neighbot_list_local, pair_cnt, cell_start, cell_end, self_pos, position);
 
 	//printf("pair_cnt: %d\n", pair_cnt);

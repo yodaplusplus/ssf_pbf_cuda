@@ -11,10 +11,12 @@ glm::mat4 controls::getProjectionMatrix(){
 
 controls::controls(GLFWwindow* arg_window) :
 window(arg_window),
-//camera_pos(glm::vec3(2.0, 4.0, 10.0)),  // Initial position : on +Z
-camera_pos(glm::vec3(-4.4484, 5.79044, 1.16664)),  // Initial position : on +Z
-horizontal_angle(0.4393 * glm::pi<float>()), // Initial horizontal angle : toward -Z
-vertical_angle(glm::pi<float>() * -0.181f), // Initial vertical angle : none
+camera_pos(glm::vec3(2.0, 4.0, 10.0)),  // Initial position : on +Z
+horizontal_angle(glm::pi<float>()), // Initial horizontal angle
+vertical_angle(glm::pi<float>() * -0.1f), // Initial vertical angle
+//camera_pos(glm::vec3(-4.4484, 5.79044, 1.16664)),  // Initial position : on +Z
+//horizontal_angle(0.4393 * glm::pi<float>()), // Initial horizontal angle : toward -Z
+//vertical_angle(glm::pi<float>() * -0.181f), // Initial vertical angle : none
 initial_fov(45.0f),
 speed(3.f), // 3 units / seconds
 mouse_speed(0.0008f),

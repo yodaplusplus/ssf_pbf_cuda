@@ -186,6 +186,9 @@
     <ClInclude Include="src\pbf\util\cuda\pbf_add.h">
       <Filter>pbf\util\cuda</Filter>
     </ClInclude>
+    <ClInclude Include="src\device_resource\swIBOs.h">
+      <Filter>device_resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\common\controls.cpp">

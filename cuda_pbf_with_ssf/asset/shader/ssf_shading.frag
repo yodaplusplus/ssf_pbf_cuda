@@ -73,6 +73,7 @@ void main()
   //float transparency = 1-thickness;
   //vec3 final_color = mix(color_atten.rgb * diffuse, refrac_color.rgb,transparency);
 
+	gl_FragDepth = exp_depth;
 	out_Color = vec4(Color.rgb * diffuse + specular * vec3(1.0f), 1.0f) + vec4(0.05f, 0.05f, 0.08f, 0.f);
 	//out_Color = vec4(final_color.rgb + specular * vec3(1.0f) + refl_color.rgb * fres_refl, 1.0f);
 
