@@ -61,7 +61,7 @@ void pbf_dam_sim::simulateOneStep()
 	gpuErrchk(cudaPeekAtLastError());
 	gpuErrchk(cudaDeviceSynchronize());
 #endif
-	one_step(simulatee, buffer, 3);
+	one_step(simulatee, buffer, domain, 3);
 	cudaGraphicsUnmapResources(1, &cu_res);
 	simulatee.phase.x = NULL;
 }

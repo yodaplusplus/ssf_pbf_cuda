@@ -5,7 +5,7 @@
 namespace pbf {
 ;
 pbf_sphere_init_cond::pbf_sphere_init_cond(scalar_t space) :
-domain_origin(dom_dim(0.1f)),
+domain_origin(dom_dim(0.05f)),
 domain_end(dom_dim(7.f)),
 fluid_origin(dom_dim(2.f)),
 fluid_end(dom_dim(4.f))

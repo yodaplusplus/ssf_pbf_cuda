@@ -56,6 +56,7 @@ void update(
 void one_step(
 	pbf_particle& simulatee,
 	pbf_buffer& buffer,
+	const std::pair<dom_dim, dom_dim> simulation_area,
 	int num_solver_iteration
 	);
 

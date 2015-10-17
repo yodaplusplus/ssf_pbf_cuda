@@ -19,13 +19,15 @@ public:
 	~neighbor_search();
 
 	// extension of reorderDataAndFindCellStart, neighbor list is constructed
+	// particles outside simulation_area are deleted
 	void detectNeighbors(
 		dom_dim* sorted_predicted_position,
 		const dom_dim* old_predicted_position,
 		dom_dim* sorted_current_position,
 		const dom_dim* old_current_position,
 		scalar_t smoothing_length,
-		uint32_t num_particle);
+		const std::pair<dom_dim, dom_dim> simulation_area,
+		uint32_t& num_particle);
 
 	void reorderDataAndFindCellStart(
 		dom_dim* sorted_predicted_position,
@@ -59,6 +61,7 @@ private:
 	hash_index_t sorted_hash_index;
 	uint32_t* cell_start;
 	uint32_t* cell_end;
+	uint32_t* deleted_num;
 	scalar_t cell_width;
 	dom_udim grid_size;
 	uint32_t max_particle_num;

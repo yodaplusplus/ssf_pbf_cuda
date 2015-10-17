@@ -13,7 +13,7 @@ in block {
   vec3 pos_from_eye;
 };
 
-out vec4 frag_color;
+// out vec4 frag_color;
 
 void main (void)
 {
@@ -31,5 +31,5 @@ void main (void)
   vec4 pixelPos = vec4(pos_from_eye + N * point_radius, 1.0f);
   vec4 clipSpacePos = Projection * pixelPos;
   gl_FragDepth = clipSpacePos.z / clipSpacePos.w;
-  frag_color = vec4(N, 1.0);
+  // frag_color = vec4(N, 1.0);
 }

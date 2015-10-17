@@ -287,7 +287,7 @@ pbf_sphere_sim::pbf_sphere_sim(scalar_t space)
 	init_cond = make_shared<pbf_sphere_init_cond>(space);
 	init_cond->getParameter(simulatee.parameter);
 	init_cond->getExternalForce(simulatee.external);
-	auto domain = init_cond->getDomainRange();
+	domain = init_cond->getDomainRange();
 	const auto num_capacity = 60000;
 	simulatee.allocate(num_capacity, domain.second);
 	buffer.allocate(num_capacity, simulatee.ns->getMaxPairParticleNum());
@@ -380,7 +380,7 @@ void pbf_sphere_sim::simulateOneStep()
 	if (cnt % 8 == 0 && simulatee.phase.num < simulatee.phase.max_num * 0.8)
 		m_jet->add(simulatee);
 
-	one_step(simulatee, buffer, 4);
+	one_step(simulatee, buffer, domain, 3);
 	cudaGraphicsUnmapResources(1, &cu_res);
 	simulatee.phase.x = NULL;
 

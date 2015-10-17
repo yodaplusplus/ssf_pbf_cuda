@@ -140,7 +140,46 @@ int main(void) {
 	swFBOs::getInstance().enroll("ssf_object");
 	glBindFramebuffer(GL_FRAMEBUFFER, swFBOs::getInstance().find("ssf_object"));
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, swTextures::getInstance().find("tex_depth"), 0);
-	glDrawBuffer(GL_NONE);	// no color, only depth
+	glDrawBuffer(GL_NONE);
+#pragma endregion
+
+#pragma endregion
+
+#pragma region ssf_thickness
+
+#pragma region shader_init
+	// Create and compile our GLSL program from the shaders
+	const auto ssf_thick_shader_id =
+		LoadShaders("asset/shader/ssf_object.vert", "asset/shader/ssf_object.geom", "asset/shader/ssf_thickness.frag");
+	const GLuint thick_scene_block_index = glGetUniformBlockIndex(ssf_thick_shader_id, "Scene");
+	glUniformBlockBinding(ssf_thick_shader_id, thick_scene_block_index, ubo_scene_binding);
+	swShaders::getInstance().enroll("ssf_thick", ssf_thick_shader_id);
+#pragma endregion
+
+#pragma region vao_init
+	swVAOs::getInstance().enroll("ssf_thick");
+	glBindVertexArray(swVAOs::getInstance().find("ssf_thick"));
+	glBindBuffer(GL_ARRAY_BUFFER, sim->getParticlesPositionVBO());
+	glEnableVertexAttribArray(glGetAttribLocation(ssf_thick_shader_id, "Position"));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glBindVertexArray(0);
+#pragma endregion
+
+#pragma region tex_init
+	swTextures::getInstance().enroll("tex_thick");
+	glBindTexture(GL_TEXTURE_2D, swTextures::getInstance().find("tex_thick"));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, resolution_window.x, resolution_window.y, 0, GL_RED, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#pragma endregion
+
+#pragma region fbo_init
+	swFBOs::getInstance().enroll("ssf_thick");
+	glBindFramebuffer(GL_FRAMEBUFFER, swFBOs::getInstance().find("ssf_thick"));
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, swTextures::getInstance().find("tex_thick"), 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 #pragma endregion
 
 #pragma endregion
@@ -357,6 +396,37 @@ int main(void) {
 		}
 #pragma endregion
 
+#pragma region thickness_map
+		{
+			// state
+			glEnable(GL_BLEND);
+			glDisable(GL_DEPTH_TEST);
+			glBlendFunc(GL_ONE, GL_ONE);
+			// fbo
+			glBindFramebuffer(GL_FRAMEBUFFER, swFBOs::getInstance().find("ssf_thick"));
+			// clear screen
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			// shader
+			const auto ssf_shader_id = swShaders::getInstance().find("ssf_thick");
+			glUseProgram(ssf_shader_id);
+			// ubo
+			glBindBufferBase(GL_UNIFORM_BUFFER, ubo_scene_binding, ubo_scene_id);
+			// uniform per shader
+			const auto world = glm::mat4(1.f);
+			glUniformMatrix4fv(glGetUniformLocation(ssf_shader_id, "World"), 1, GL_FALSE, &world[0][0]);
+			glUniform1f(glGetUniformLocation(ssf_shader_id, "point_radius"), 0.18f);
+
+			// draw
+			glBindVertexArray(swVAOs::getInstance().find("ssf_thick"));
+			glDrawArrays(GL_POINTS, 0, sim->getParticlesNum());
+
+			// restore state
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDisable(GL_BLEND);
+			glEnable(GL_DEPTH_TEST);
+		}
+#pragma endregion
+
 #pragma region blur_map_even
 		{
 			// fbo
@@ -462,10 +532,18 @@ int main(void) {
 		}
 #pragma endregion
 
+	// forward rendering
+	// clear screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	sim->drawNeighborSearchArea(ubo_scene_id);
+
 #pragma region shading
 		{
-			// clear screen
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			// state
+			glDepthMask(false);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			// shader
 			const auto ssf_shader_id = swShaders::getInstance().find("ssf_shading");
 			glUseProgram(ssf_shader_id);
@@ -480,15 +558,19 @@ int main(void) {
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, swTextures::getInstance().find("tex_normal"));
 			glUniform1i(glGetUniformLocation(ssf_shader_id, "tex_normal"), 1);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, swTextures::getInstance().find("tex_thick"));
+			glUniform1i(glGetUniformLocation(ssf_shader_id, "tex_thick"), 2);
 			// draw
 			glBindVertexArray(swVAOs::getInstance().find("ssf_fullscreen"));
 			glDrawArrays(GL_TRIANGLES, 0, 6);
+			// restore state
+			glDepthMask(true);
+			glDisable(GL_BLEND);
 			// clear
 			//glBindVertexArray(0);
 		}
 #pragma endregion
-
-		sim->drawNeighborSearchArea(ubo_scene_id);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

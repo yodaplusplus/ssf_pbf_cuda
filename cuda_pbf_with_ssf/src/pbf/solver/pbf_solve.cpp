@@ -117,6 +117,7 @@ void update(
 void one_step(
 	pbf_particle& simulatee,
 	pbf_buffer& buf,
+	const std::pair<dom_dim, dom_dim> simulation_area,
 	int num_solver_iteration
 	)
 {
@@ -127,7 +128,7 @@ void one_step(
 	auto& phase = simulatee.phase;
 	auto& param = simulatee.parameter;
 	auto ns = simulatee.ns;
-	const uint32_t num_particle = simulatee.phase.num;
+	uint32_t& num_particle = simulatee.phase.num;
 	const auto inv_rho0 = 1.f / param.stable_density;
 	const auto m = param.particle_mass;
 	const auto h = param.smoothing_length;
@@ -136,7 +137,7 @@ void one_step(
 	predict(buf.interim.x, buf.interim.v, phase.x, phase.v, simulatee.external.body_force, param.time_step, num_particle);
 
 	//ns.reorderDataAndFindCellStart(buf.sorted_predicted_pos, buf.interim.x, buf.sorted_old_pos, phase.x, num_particle);
-	ns->detectNeighbors(buf.sorted_predicted_pos, buf.interim.x, buf.sorted_old_pos, phase.x, param.smoothing_length, num_particle);
+	ns->detectNeighbors(buf.sorted_predicted_pos, buf.interim.x, buf.sorted_old_pos, phase.x, param.smoothing_length, simulation_area, num_particle);
 
 	solveConstraint(buf.sorted_predicted_pos, buf.delta_position, buf.scaling_factor, 
 		buf.kernels, buf.grad_kernels,

@@ -189,6 +189,9 @@
     <ClInclude Include="src\device_resource\swIBOs.h">
       <Filter>device_resource</Filter>
     </ClInclude>
+    <ClInclude Include="src\pbf\util\cuda\pbf_delete.h">
+      <Filter>pbf\util\cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\common\controls.cpp">
@@ -276,6 +279,9 @@
       <Filter>pbf\interaction\cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="src\pbf\util\cuda\pbf_add.cu">
+      <Filter>pbf\util\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\util\cuda\pbf_delete.cu">
       <Filter>pbf\util\cuda</Filter>
     </CudaCompile>
   </ItemGroup>

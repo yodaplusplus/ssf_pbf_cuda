@@ -9,8 +9,8 @@ layout(std140) uniform Scene {
 uniform mat4x4 World;
 uniform sampler2D tex_depth;
 uniform sampler2D tex_normal;
+uniform sampler2D tex_thick;
 //uniform sampler2D u_Positiontex;
-//uniform sampler2D u_Thicktex;
 
 in block {
   vec3 position;
@@ -42,7 +42,7 @@ void main()
   vec3 N = texture(tex_normal, IN.tex_coord).xyz;
   float exp_depth = texture(tex_depth, IN.tex_coord).r;
   // float lin_depth = linearizeDepth(exp_depth,u_Near,u_Far);
-	//float thickness = clamp(texture(u_Thicktex,fs_Texcoord).r,0.0f,1.0f);
+	float thickness = clamp(texture(tex_thick, IN.tex_coord).r, 0.0f, 1.0f);
   vec3 position = uvToEye(IN.tex_coord, exp_depth).xyz;
 
 	if(exp_depth == 1.0) {
@@ -64,18 +64,20 @@ void main()
 
 	//Color Attenuation from Thickness
   //(Beer's Law)
-  //float k_r = 5.0f;
-  //float k_g = 1.0f;
-  //float k_b = 0.1f;
-  //vec3 color_atten = vec3( exp(-k_r*thickness), exp(-k_g*thickness), exp(-k_b*thickness));
+  float k_r = 5.0f;
+  float k_g = 1.0f;
+  float k_b = 0.1f;
+  vec3 color_atten = vec3( exp(-k_r*thickness), exp(-k_g*thickness), exp(-k_b*thickness));
 
   //Final Real Color Mix
-  //float transparency = 1-thickness;
-  //vec3 final_color = mix(color_atten.rgb * diffuse, refrac_color.rgb,transparency);
+  float transparency = 1.0f - thickness;
+  // vec3 final_color = mix(color_atten.rgb * diffuse, refrac_color.rgb,transparency);
+	vec3 final_color = color_atten.rgb * diffuse;
 
 	gl_FragDepth = exp_depth;
-	out_Color = vec4(Color.rgb * diffuse + specular * vec3(1.0f), 1.0f) + vec4(0.05f, 0.05f, 0.08f, 0.f);
-	//out_Color = vec4(final_color.rgb + specular * vec3(1.0f) + refl_color.rgb * fres_refl, 1.0f);
+	// out_Color = vec4(thickness, thickness, thickness, 1.0f) + vec4(0.05f, 0.05f, 0.08f, 0.f);
+	// out_Color = vec4(Color.rgb * diffuse + specular * vec3(1.0f), 1.0f) + vec4(0.05f, 0.05f, 0.08f, 0.f);
+	out_Color = vec4(final_color.rgb + specular * vec3(1.0f) + vec3(1.0f, 1.0f, 1.0f) * fres_refl, 1.0f - transparency);
 
 	return;
 }

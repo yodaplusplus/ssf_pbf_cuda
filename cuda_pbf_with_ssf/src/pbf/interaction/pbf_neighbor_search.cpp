@@ -1,8 +1,10 @@
 #include "pbf_neighbor_search.h"
 #include "cuda/pbf_neighbor_search_util.h"
+#include "cuda/pbf_grid.h"
 #include "../util/cuda/pbf_fill.h"
 #include "../util/pbf_cuda_util.h"
 #include "../util/cuda/pbf_counting_sort.h"
+#include "../util/cuda/pbf_delete.h"
 
 namespace pbf {
 
@@ -21,6 +23,7 @@ neighbor_search::neighbor_search(
 	cudaMalloc(&hash_index.d_hash, max_particle_num * sizeof(uint32_t));
 	cudaMalloc(&hash_index.d_index, max_particle_num * sizeof(uint32_t));
 	cudaMalloc(&neighbor_list, max_particle_num * max_pair_particle_num * sizeof(uint32_t));
+	cudaMalloc(&deleted_num, sizeof(uint32_t));
 
 	cudaMemset(cell_start, 0, cell_num * sizeof(uint32_t));
 	cudaMemset(cell_end, 0, cell_num * sizeof(uint32_t));
@@ -72,6 +75,7 @@ neighbor_search::~neighbor_search()
 	cudaFree(hash_index.d_hash);
 	cudaFree(hash_index.d_index);
 	cudaFree(neighbor_list);
+	cudaFree(deleted_num);
 
 	cudaFree(sorted_hash_index.d_hash);
 	cudaFree(sorted_hash_index.d_index);
@@ -91,7 +95,8 @@ void neighbor_search::detectNeighbors(
 	dom_dim* sorted_current_position,
 	const dom_dim* old_current_position,
 	scalar_t smoothing_length,
-	uint32_t num_particle)
+	const std::pair<dom_dim, dom_dim> simulation_area,
+	uint32_t& num_particle)
 {
 	const uint32_t empty = 0xFFFFFFFF;
 	uint32_t total_cell = grid_size.x * grid_size.y * grid_size.z;
@@ -100,7 +105,9 @@ void neighbor_search::detectNeighbors(
 #endif
 	pbf::cuda::fill(cell_start, empty, total_cell);
 	pbf::cuda::fill(neighbor_list, empty, max_pair_particle_num * num_particle);
+	cudaMemset(deleted_num, 0, sizeof(uint32_t));
 	if (num_particle > 0){
+		// trivial indexing
 		pbf::cuda::calcHash(hash_index.d_hash, hash_index.d_index, old_predicted_position, cell_width, grid_size, num_particle);
 #ifdef USE_THRUST
 		cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
@@ -136,11 +143,21 @@ void neighbor_search::detectNeighbors(
 		//pbf::cuda::detectNeighbors(neighbor_list, sorted_predicted_position, cell_start, cell_end,
 		//	cell_width, grid_size, smoothing_length, num_particle, max_pair_particle_num);
 #else
-		// trivial indexing
+		const uint32_t delete_cell_id = grid_size.z * grid_size.y * grid_size.z - 1;
+		pbf::cuda::checkDeleteParticle(hash_index.d_hash, old_predicted_position, simulation_area, delete_cell_id, num_particle);
+
 		pbf::cuda::fill(hash_count, 0, num_particle);
 		pbf::cuda::fill(cell_count, 0, total_cell);
 		pbf::cuda::countingSort(sorted_hash_index.d_hash, sorted_hash_index.d_index, cumulative_cell_count, cell_count,
 			hash_count, temp_cub_storage, temp_cub_storage_size, hash_index.d_hash, num_particle, total_cell);
+		// particle deletion
+		pbf::cuda::calculateDeleteNumber(deleted_num, sorted_hash_index.d_hash, delete_cell_id, num_particle);
+		uint32_t h_deleted_num = 0;
+		cudaMemcpy(&h_deleted_num, deleted_num, sizeof(uint32_t), cudaMemcpyDeviceToHost);
+		//if (h_deleted_num != 0)
+		//	printf("deleted: %u\n", h_deleted_num);
+		num_particle = num_particle - h_deleted_num;
+
 		pbf::cuda::findCellStart(cell_start, cell_end, sorted_hash_index.d_hash, sorted_hash_index.d_index, num_particle);
 		pbf::cuda::reorderData(sorted_predicted_position, old_predicted_position, sorted_hash_index.d_index, num_particle);
 		pbf::cuda::reorderData(sorted_current_position, old_current_position, sorted_hash_index.d_index, num_particle);

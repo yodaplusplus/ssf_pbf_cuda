@@ -260,6 +260,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\pbf\solver\pbf_solve.h" />
     <ClInclude Include="src\pbf\util\cuda\pbf_add.h" />
     <ClInclude Include="src\pbf\util\cuda\pbf_counting_sort.h" />
+    <ClInclude Include="src\pbf\util\cuda\pbf_delete.h" />
     <ClInclude Include="src\pbf\util\cuda\pbf_fill.h" />
     <ClInclude Include="src\pbf\util\pbf_arrangement.h" />
     <ClInclude Include="src\pbf\util\pbf_cuda_util.h" />
@@ -292,6 +293,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="src\pbf\solver\cuda\pbf_xsph.cu" />
     <CudaCompile Include="src\pbf\util\cuda\pbf_add.cu" />
     <CudaCompile Include="src\pbf\util\cuda\pbf_counting_sort.cu" />
+    <CudaCompile Include="src\pbf\util\cuda\pbf_delete.cu" />
     <CudaCompile Include="src\pbf\util\cuda\pbf_fill.cu" />
   </ItemGroup>
   <ItemGroup>
