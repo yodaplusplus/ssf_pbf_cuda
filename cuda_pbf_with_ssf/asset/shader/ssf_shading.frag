@@ -70,14 +70,14 @@ void main()
   vec3 color_atten = vec3( exp(-k_r*thickness), exp(-k_g*thickness), exp(-k_b*thickness));
 
   //Final Real Color Mix
-  float transparency = 1.0f - thickness;
+  // float transparency = 1.0f - thickness;
   // vec3 final_color = mix(color_atten.rgb * diffuse, refrac_color.rgb,transparency);
 	vec3 final_color = color_atten.rgb * diffuse;
 
 	gl_FragDepth = exp_depth;
 	// out_Color = vec4(thickness, thickness, thickness, 1.0f) + vec4(0.05f, 0.05f, 0.08f, 0.f);
 	// out_Color = vec4(Color.rgb * diffuse + specular * vec3(1.0f), 1.0f) + vec4(0.05f, 0.05f, 0.08f, 0.f);
-	out_Color = vec4(final_color.rgb + specular * vec3(1.0f) + vec3(1.0f, 1.0f, 1.0f) * fres_refl, 1.0f - transparency);
+	out_Color = vec4(final_color.rgb + specular * vec3(1.0f) + vec3(1.0f, 1.0f, 1.0f) * fres_refl, thickness);
 
 	return;
 }

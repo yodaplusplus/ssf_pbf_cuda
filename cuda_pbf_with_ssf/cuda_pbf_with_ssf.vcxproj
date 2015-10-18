@@ -210,6 +210,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="src\common\vboindexer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pbf\interaction\pbf_neighbor_search.cpp" />
+    <ClCompile Include="src\pbf\pbf_boundary.cpp" />
     <ClCompile Include="src\pbf\pbf_type.cpp" />
     <ClCompile Include="src\simulator\sphere\pbf_sphere_init_cond.cpp" />
     <ClCompile Include="src\simulator\sphere\pbf_sphere_sim.cpp" />
@@ -246,6 +247,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\pbf\interaction\pbf_neighbor_search.h" />
     <ClInclude Include="src\pbf\kernel\cuda\pbf_kernel.h" />
     <ClInclude Include="src\pbf\pbf.h" />
+    <ClInclude Include="src\pbf\pbf_boundary.h" />
     <ClInclude Include="src\pbf\pbf_type.h" />
     <ClInclude Include="src\pbf\solver\cuda\boundary\pbf_plane_boundary.cuh" />
     <ClInclude Include="src\pbf\solver\cuda\boundary\pbf_sphere_boundary.cuh" />
@@ -254,6 +256,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\pbf\solver\cuda\pbf_kernel_memorization.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_position_update.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_predict.h" />
+    <ClInclude Include="src\pbf\solver\cuda\pbf_response_collision.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_update.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_vorticity_confinement.h" />
     <ClInclude Include="src\pbf\solver\cuda\pbf_xsph.h" />
@@ -288,6 +291,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="src\pbf\solver\cuda\pbf_kernel_memorization.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_position_update.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_predict.cu" />
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_response_collision.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_update.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_vorticity_confinement.cu" />
     <CudaCompile Include="src\pbf\solver\cuda\pbf_xsph.cu" />

@@ -192,6 +192,12 @@
     <ClInclude Include="src\pbf\util\cuda\pbf_delete.h">
       <Filter>pbf\util\cuda</Filter>
     </ClInclude>
+    <ClInclude Include="src\pbf\solver\cuda\pbf_response_collision.h">
+      <Filter>pbf\solver\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pbf\pbf_boundary.h">
+      <Filter>pbf</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\common\controls.cpp">
@@ -233,6 +239,9 @@
     </ClCompile>
     <ClCompile Include="src\simulator\sphere\pbf_sphere_sim.cpp">
       <Filter>simulator\sphere</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pbf\pbf_boundary.cpp">
+      <Filter>pbf</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -283,6 +292,9 @@
     </CudaCompile>
     <CudaCompile Include="src\pbf\util\cuda\pbf_delete.cu">
       <Filter>pbf\util\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\pbf\solver\cuda\pbf_response_collision.cu">
+      <Filter>pbf\solver\cuda</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>

@@ -296,9 +296,15 @@ pbf_sphere_sim::pbf_sphere_sim(scalar_t space)
 	//init_cond->getDomainParticlePhaseHost(x, v);
 	simulatee.phase.num = x.size();
 	cout << "initial particle number: " << x.size() << endl;
-	
-#pragma region gl_interpo_init
+	// boundary
+	vector<glm::vec4> inner_sphere;
+	vector<glm::vec4> outer_sphere;
+	vector<dom_dim> p_on_plane;
+	vector<dom_dim> n_on_plane;
+	init_cond->getBoundaryHost(inner_sphere, outer_sphere, p_on_plane, n_on_plane);
+	boundary.allocate(inner_sphere, outer_sphere, p_on_plane, n_on_plane);
 
+#pragma region gl_interpo_init
 	swVBOs::getInstance().enroll("pbf_particle");
 	glBindBuffer(GL_ARRAY_BUFFER, swVBOs::getInstance().findVBO("pbf_particle"));
 	//glBufferData(GL_ARRAY_BUFFER, x.size() * sizeof(glm::vec3), x.data(), GL_STATIC_DRAW);
@@ -380,7 +386,7 @@ void pbf_sphere_sim::simulateOneStep()
 	if (cnt % 8 == 0 && simulatee.phase.num < simulatee.phase.max_num * 0.8)
 		m_jet->add(simulatee);
 
-	one_step(simulatee, buffer, domain, 3);
+	one_step(simulatee, buffer, boundary, domain, 3);
 	cudaGraphicsUnmapResources(1, &cu_res);
 	simulatee.phase.x = NULL;
 

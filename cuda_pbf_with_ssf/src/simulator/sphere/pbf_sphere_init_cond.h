@@ -13,6 +13,11 @@ public:
 	void getDomainParticlePhaseHost(std::vector<dom_dim>& pos, std::vector<dom_dim>& vel) const;
 	// space : desired particles space
 	void getDomainParticlePhaseDevice(dom_dim* pos, dom_dim* vel, uint32_t* particle_num) const;
+	void getBoundaryHost(
+		std::vector<glm::vec4>& h_inner_spheres,	// float4(center, radius)
+		std::vector<glm::vec4>& h_outer_spheres,	// float4(center, radius)
+		std::vector<dom_dim>& h_points_on_planes,
+		std::vector<dom_dim>& h_normals_on_planes);
 	void getParameter(pbf_parameter& param);
 	void getExternalForce(pbf_external& external);
 	std::pair<dom_dim, dom_dim> getDomainRange() const;

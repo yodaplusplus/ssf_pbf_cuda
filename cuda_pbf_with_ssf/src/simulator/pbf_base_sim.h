@@ -20,6 +20,7 @@ protected:
 	// particles data
 	pbf_particle simulatee;
 	pbf_buffer buffer;
+	pbf_boundary boundary;
 	// buffer for physical quantitites query
 	//pbf_particle sorted_current_calc;
 	//pbf_particle sorted_old_calc;	// one step before

@@ -532,11 +532,11 @@ int main(void) {
 		}
 #pragma endregion
 
-	// forward rendering
-	// clear screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// forward rendering
+		// clear screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	sim->drawNeighborSearchArea(ubo_scene_id);
+		sim->drawNeighborSearchArea(ubo_scene_id);
 
 #pragma region shading
 		{

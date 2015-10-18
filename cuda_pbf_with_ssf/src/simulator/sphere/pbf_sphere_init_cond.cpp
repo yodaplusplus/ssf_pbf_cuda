@@ -66,6 +66,15 @@ void pbf_sphere_init_cond::getDomainParticlePhaseDevice(dom_dim* pos, dom_dim* v
 	bodyD(pos, vel, particle_num, param.stable_distance, fluid_origin, fluid_end);
 }
 
+void pbf_sphere_init_cond::getBoundaryHost(
+	std::vector<glm::vec4>& h_inner_spheres,	// float4(center, radius)
+	std::vector<glm::vec4>& h_outer_spheres,	// float4(center, radius)
+	std::vector<dom_dim>& h_points_on_planes,
+	std::vector<dom_dim>& h_normals_on_planes)
+{
+	h_inner_spheres.emplace_back(glm::vec4(3.f, 3.f, 3.f, 3.f));
+}
+
 void pbf_sphere_init_cond::getParameter(pbf_parameter& arg_param)
 {
 	memcpy(&arg_param, &param, sizeof(pbf_parameter));

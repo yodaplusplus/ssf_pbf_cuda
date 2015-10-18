@@ -64,7 +64,6 @@ void main()
       float sampleDepth = texture(tex_depth, sample_coord).r;
 			float sample_lin_depth = linearizeDepth(sampleDepth, proj_near, proj_far);
 
-      // if(sampleDepth != 1.0f){
       if(sampleDepth != 1.0f){
           //Spatial
           float r = x * x * blurRadius;
@@ -85,21 +84,20 @@ void main()
           sum += sample_lin_depth * w * g;
           wsum += w * g;
       }
-			else {
-				//Spatial
-				float r = x * x * blurRadius;
-				float w = exp(-r);
-
-				sum += sample_lin_depth * w;
-				wsum += w;
-			}
+			// else {
+			// 	//Spatial
+			// 	float r = x * x * blurRadius;
+			// 	float w = exp(-r);
+			//
+			// 	sum += lin_depth * w;
+			// 	wsum += w;
+			// }
 	}
 	for(int y = -windowWidth; y < windowWidth; y++){
 			vec2 sample_coord = vec2(tex_coord.s, tex_coord.t + y*blurRadius);
 			float sampleDepth = texture(tex_depth, sample_coord).r;
 			float sample_lin_depth = linearizeDepth(sampleDepth, proj_near, proj_far);
 
-			// if(sampleDepth != 1.0f){
 			if(sampleDepth != 1.0f){
 					//Spatial
 					float r = y * y * blurRadius;
@@ -120,14 +118,14 @@ void main()
 					sum += sample_lin_depth * w * g;
 					wsum += w * g;
 			}
-			else {
-				//Spatial
-				float r = y * y * blurRadius;
-				float w = exp(-r);
-
-				sum += sample_lin_depth * w;
-				wsum += w;
-			}
+			// else {
+			// 	//Spatial
+			// 	float r = y * y * blurRadius;
+			// 	float w = exp(-r);
+			//
+			// 	sum += lin_depth * w;
+			// 	wsum += w;
+			// }
 	}
 
 	if(wsum > 0.0f){

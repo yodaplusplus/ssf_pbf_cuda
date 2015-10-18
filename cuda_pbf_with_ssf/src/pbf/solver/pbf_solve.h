@@ -1,5 +1,6 @@
 #pragma once
 #include "../pbf_type.h"
+#include "../pbf_boundary.h"
 #include "../interaction/pbf_neighbor_search.h"
 
 namespace pbf {
@@ -56,6 +57,14 @@ void update(
 void one_step(
 	pbf_particle& simulatee,
 	pbf_buffer& buffer,
+	const std::pair<dom_dim, dom_dim> simulation_area,
+	int num_solver_iteration
+	);
+
+void one_step(
+	pbf_particle& simulatee,
+	pbf_buffer& buffer,
+	const pbf_boundary& boundary,
 	const std::pair<dom_dim, dom_dim> simulation_area,
 	int num_solver_iteration
 	);

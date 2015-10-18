@@ -5,6 +5,7 @@
 #include "cuda/pbf_position_update.h"
 #include "cuda/pbf_density.h"
 #include "cuda/pbf_kernel_memorization.h"
+#include "cuda/pbf_response_collision.h"
 #include "../interaction/pbf_neighbor_search.h"
 #include "../kernel/cuda/pbf_kernel.h"
 
@@ -71,6 +72,35 @@ void solveConstraint(
 		cuda::calcPositionUpdate(position_update, scaling_factor, kernels, grad_kernels, ns,
 			inv_stable_density, particle_mass, smoothing_length, num_particle);
 		cuda::responseCollision(position_update, interim_position, old_position, num_particle);
+		cuda::updateInterimPosition(interim_position, position_update, num_particle);
+	}
+}
+
+void solveConstraint(
+	dom_dim* interim_position, dom_dim* position_update, scalar_t* scaling_factor,
+	scalar_t* kernels, dom_dim* grad_kernels,
+	const dom_dim* old_position, const pbf_boundary& boundary,
+	std::shared_ptr<neighbor_search>& ns,
+	scalar_t inv_stable_density, scalar_t particle_mass, scalar_t smoothing_length,
+	scalar_t relaxation,
+	int num_iteration,
+	int num_particle
+	)
+{
+	auto& h = smoothing_length;
+	const auto inv_h = 1.f / h;
+	static auto k = pow(kernel::cuda::weight<kernel::cuda::PBFKERNEL>(h * 0.4f, inv_h), 4);
+	cuda::pu::setConstantMemory(smoothing_length, particle_mass, inv_stable_density, k);
+
+	for (int itr = 0; itr < num_iteration; ++itr) {
+		cuda::memorizeKernelCalc(kernels, grad_kernels, ns, interim_position, smoothing_length, num_particle);
+		cuda::calcScalingFactor(scaling_factor, kernels, grad_kernels, ns,
+			inv_stable_density, particle_mass, smoothing_length, relaxation, num_particle);
+		cuda::calcPositionUpdate(position_update, scaling_factor, kernels, grad_kernels, ns,
+			inv_stable_density, particle_mass, smoothing_length, num_particle);
+		cuda::responseCollision(position_update, interim_position, old_position, num_particle,
+			boundary.inner_spheres, boundary.inner_spheres_num, boundary.outer_spheres, boundary.outer_spheres_num,
+			boundary.points_on_planes, boundary.normals_on_planes, boundary.planes_num);
 		cuda::updateInterimPosition(interim_position, position_update, num_particle);
 	}
 }
@@ -142,6 +172,42 @@ void one_step(
 	solveConstraint(buf.sorted_predicted_pos, buf.delta_position, buf.scaling_factor, 
 		buf.kernels, buf.grad_kernels,
 		buf.sorted_old_pos,
+		ns, inv_rho0, m, h, param.relaxation, num_solver_iteration, num_particle);
+
+	//update(phase.x, phase.v, buf.interim.v, buf.sorted_predicted_pos, buf.sorted_old_pos, ns, inv_t, inv_rho0, m, h, param.xsph_parameter, num_particle); // no vorticity confinement
+	update(phase.x, phase.v, buf.interim.v, buf.vorticity, buf.sorted_predicted_pos, buf.sorted_old_pos, ns, inv_t, inv_rho0, m, h, param.xsph_parameter, param.vc_parameter, num_particle);
+	//cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
+}
+
+void one_step(
+	pbf_particle& simulatee,
+	pbf_buffer& buf,
+	const pbf_boundary& boundary,
+	const std::pair<dom_dim, dom_dim> simulation_area,
+	int num_solver_iteration
+	)
+{
+	// cuda state
+	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
+
+	// rename
+	auto& phase = simulatee.phase;
+	auto& param = simulatee.parameter;
+	auto ns = simulatee.ns;
+	uint32_t& num_particle = simulatee.phase.num;
+	const auto inv_rho0 = 1.f / param.stable_density;
+	const auto m = param.particle_mass;
+	const auto h = param.smoothing_length;
+	const auto inv_t = 1.f / param.time_step;
+
+	predict(buf.interim.x, buf.interim.v, phase.x, phase.v, simulatee.external.body_force, param.time_step, num_particle);
+
+	//ns.reorderDataAndFindCellStart(buf.sorted_predicted_pos, buf.interim.x, buf.sorted_old_pos, phase.x, num_particle);
+	ns->detectNeighbors(buf.sorted_predicted_pos, buf.interim.x, buf.sorted_old_pos, phase.x, param.smoothing_length, simulation_area, num_particle);
+
+	solveConstraint(buf.sorted_predicted_pos, buf.delta_position, buf.scaling_factor,
+		buf.kernels, buf.grad_kernels,
+		buf.sorted_old_pos, boundary,
 		ns, inv_rho0, m, h, param.relaxation, num_solver_iteration, num_particle);
 
 	//update(phase.x, phase.v, buf.interim.v, buf.sorted_predicted_pos, buf.sorted_old_pos, ns, inv_t, inv_rho0, m, h, param.xsph_parameter, num_particle); // no vorticity confinement
